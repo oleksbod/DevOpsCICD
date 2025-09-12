@@ -45,13 +45,15 @@ if ! command -v python3 &> /dev/null
 then
     echo "-> Install Python 3..."
     sudo apt-get install -y python3 python3-pip python3-venv
-elif [[ "$(python3 -V | awk '{print $2}' | cut -d. -f1,2)" < "3.9" ]]
-then
-    echo ">> Update Python to 3.9+..."
-    sudo apt-get install -y python3.9 python3.9-venv python3.9-distutils
-    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2
 else
-    echo "Python exist."
+    PYTHON_VERSION=$(python3 -V | awk '{print $2}')
+    if [ "$(printf '%s\n' "3.9" "$PYTHON_VERSION" | sort -V | head -n1)" = "3.9" ]; then
+        echo "Python $PYTHON_VERSION is OK"
+    else
+        echo "-> Update Python to 3.9+..."
+        sudo apt-get install -y python3.9 python3.9-venv python3.9-distutils
+        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2
+    fi
 fi
 
 # Встановлення Django
