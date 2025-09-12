@@ -31,13 +31,10 @@ else
 fi
 
 # Встановлення Docker Compose
-if ! command -v docker-compose &> /dev/null
+if ! docker compose version &> /dev/null
 then
     echo "-> Install Docker Compose..."
-    DOCKER_COMPOSE_VERSION="1.29.2"
-    sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-        -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
+    sudo apt-get install -y docker-compose-plugin
     echo "Docker Compose instaled!"
 else
     echo "Docker Compose exist..."
