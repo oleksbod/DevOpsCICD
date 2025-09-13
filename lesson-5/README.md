@@ -20,8 +20,8 @@ terraform apply
 
 Команди:
 
-`terraform init` - ініціалізація
-`terraform init -reconfigure` - переконфігурація
-`terraform plan` - план
-`terraform apply` - виконання
-`terraform destroy` - видалення
+-   `terraform init` - ініціалізація
+-   `terraform init -reconfigure` - переконфігурація
+-   `terraform plan` - план
+-   `terraform apply` - виконання
+-   `terraform destroy` - видалення
