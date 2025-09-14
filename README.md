@@ -56,3 +56,17 @@ lesson-5/
 │
 └── README.md # Документація проєкту
 ```
+
+## branch lesson-6
+
+Cтворити кластер Kubernetes у тій самій мережі (VPC), яку ви налаштували в попередньому завданні, та реалізувати такі компоненти:
+
+1. Створення кластера Kubernetes через Terraform.
+
+2. Налаштування Elastic Container Registry (ECR) для зберігання Docker-образу вашого Django-застосунку.
+
+3. Завантаження Docker-образу Django до ECR.
+
+4. Створення helm chart (deployment.yaml, service.yaml, hpa.yaml, configmap.yaml)
+
+5. Перенесення змінних середовища (env) з теми 4 в ConfigMap, який буде використаний вашим застосунком.
