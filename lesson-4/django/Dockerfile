@@ -16,4 +16,4 @@ ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
 COPY . .
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "goit/manage.py", "runserver", "0.0.0.0:8000"]
