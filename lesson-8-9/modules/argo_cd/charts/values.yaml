@@ -1,0 +1,29 @@
+applications:
+    - name: django-app
+      namespace: default
+      project: default
+      source:
+          repoURL: "https://github.com/AndriyDmitriv/infra.git"
+          path: "lesson-7/charts/django-app"
+          targetRevision: main
+          helm:
+              valueFiles:
+                  - values.yaml
+      destination:
+          server: "https://kubernetes.default.svc"
+          namespace: default
+      syncPolicy:
+          automated:
+              prune: true
+              selfHeal: true
+          syncOptions:
+              - CreateNamespace=true
+
+repositories:
+    - name: infra-repo
+      url: "https://github.com/AndriyDmitriv/infra.git"
+      type: git
+
+repoConfig:
+    insecure: "true"
+    enableLfs: "true"
