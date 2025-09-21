@@ -11,11 +11,11 @@ controller:
 
     resources:
         limits:
-            cpu: "500m"
-            memory: "1Gi"
-        requests:
-            cpu: "250m"
+            cpu: "300m"
             memory: "512Mi"
+        requests:
+            cpu: "100m"
+            memory: "256Mi"
 
     persistentVolume:
         enabled: true
