@@ -70,3 +70,12 @@ Cтворити кластер Kubernetes у тій самій мережі (VPC
 4. Створення helm chart (deployment.yaml, service.yaml, hpa.yaml, configmap.yaml)
 
 5. Перенесення змінних середовища (env) з теми 4 в ConfigMap, який буде використаний вашим застосунком.
+
+## branch lesson-8-9
+
+Реалізувати повний CI/CD-процес із використанням Jenkins + Helm + Terraform + Argo CD, який:
+
+1. Автоматично збирає Docker-образ для Django-застосунку;
+2. Публікує образ в Amazon ECR;
+3. Оновлює Helm chart у репозиторії з правильним тегом;
+4. Синхронізує застосунок у кластері через Argo CD, який підхоплює зміни з Git.
