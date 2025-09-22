@@ -65,9 +65,9 @@ module "eks" {
   public_subnet_ids   = module.vpc.public_subnets
 
   ng_instance_types   = ["t3.large"]  
-  ng_desired_size     = 1              
+  ng_desired_size     = 2              
   ng_min_size         = 1              
-  ng_max_size         = 1 
+  ng_max_size         = 3 
 }
 
 # Data sources для підключення до EKS
