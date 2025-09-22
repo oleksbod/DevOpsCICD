@@ -1,6 +1,18 @@
 apiVersion: v2
 name: django-app
-description: Django on EKS (lesson-7)
+description: Django application with Prometheus monitoring for Final Project
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "1.0.0"
+keywords:
+    - django
+    - python
+    - web
+    - monitoring
+    - prometheus
+home: https://github.com/oleksbod/DevOpsCICD
+sources:
+    - https://github.com/oleksbod/DevOpsCICD
+maintainers:
+    - name: Oleksandr
+      email: oleksbod@example.com

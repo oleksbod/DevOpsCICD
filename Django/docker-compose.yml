@@ -1,27 +1,36 @@
 services:
     django:
         build:
-            context: ./django
+            context: .
         container_name: django
-        command: python goit/manage.py runserver 0.0.0.0:8000
+        command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
         volumes:
-            - ./django:/app
-        env_file:
-            - .env
+            - ./app:/app
+        environment:
+            - DEBUG=True
+            - DB_NAME=mydb
+            - DB_USER=dbadmin
+            - DB_PASSWORD=password123
+            - DB_HOST=db
+            - DB_PORT=5432
         ports:
             - "8000:8000"
         depends_on:
             - db
+        restart: unless-stopped
 
     db:
         image: postgres:14
         container_name: postgres_db
-        env_file:
-            - .env
+        environment:
+            - POSTGRES_DB=mydb
+            - POSTGRES_USER=dbadmin
+            - POSTGRES_PASSWORD=password123
         volumes:
             - postgres_data:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+        restart: unless-stopped
 
     nginx:
         image: nginx:latest
@@ -32,6 +41,7 @@ services:
             - ./nginx:/etc/nginx/conf.d
         depends_on:
             - django
+        restart: unless-stopped
 
 volumes:
     postgres_data:

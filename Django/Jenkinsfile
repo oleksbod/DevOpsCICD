@@ -1,0 +1,133 @@
+pipeline {
+    agent any
+    
+    environment {
+        AWS_DEFAULT_REGION = 'eu-central-1'
+        ECR_REPO_URL = '535138320407.dkr.ecr.eu-central-1.amazonaws.com/final-project-django'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        COMMIT_EMAIL = 'oleksbod@example.com'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                        # Login to ECR
+                        aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${ECR_REPO_URL}
+                        
+                        # Build image
+                        docker build -t ${ECR_REPO_URL}:${IMAGE_TAG} .
+                        docker build -t ${ECR_REPO_URL}:latest .
+                        
+                        # Push images
+                        docker push ${ECR_REPO_URL}:${IMAGE_TAG}
+                        docker push ${ECR_REPO_URL}:latest
+                    '''
+                }
+            }
+        }
+        
+        stage('Update Chart Tag in Git') {
+            steps {
+                container('git') {
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PAT')]) {
+                        sh '''
+                            git clone https://$GIT_USERNAME:$GIT_PAT@github.com/oleksbod/DevOpsCICD.git
+                            cd DevOpsCICD/final-project/charts/django-app
+                            
+                            sed -i "s/tag: .*/tag: $IMAGE_TAG/" values.yaml
+                            
+                            git config user.email "$COMMIT_EMAIL"
+                            git config user.name "Jenkins"
+                            git add values.yaml
+                            git commit -m "Update Django app image tag to $IMAGE_TAG"
+                            git push origin main
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            parallel {
+                stage('Trivy Image Scan') {
+                    steps {
+                        sh '''
+                            # Install Trivy
+                            wget -qO- https://aquasecurity.github.io/trivy/install.sh | sh -s -- -b /usr/local/bin
+                            
+                            # Scan image
+                            trivy image --exit-code 0 --severity HIGH,CRITICAL ${ECR_REPO_URL}:${IMAGE_TAG}
+                        '''
+                    }
+                }
+                
+                stage('Bandit Security Scan') {
+                    steps {
+                        sh '''
+                            # Install Bandit
+                            pip install bandit
+                            
+                            # Scan Python code
+                            bandit -r app/ -f json -o bandit-report.json || true
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            steps {
+                sh '''
+                    # Update kubeconfig
+                    aws eks update-kubeconfig --region eu-central-1 --name final-project-eks
+                    
+                    # Deploy to staging
+                    helm upgrade --install django-staging ./charts/django-app \
+                        --namespace staging \
+                        --create-namespace \
+                        --set image.tag=${IMAGE_TAG} \
+                        --set image.repository=${ECR_REPO_URL}
+                '''
+            }
+        }
+        
+        stage('DAST Scan') {
+            steps {
+                sh '''
+                    # Wait for deployment
+                    kubectl wait --for=condition=available --timeout=300s deployment/django-app -n staging
+                    
+                    # Get service URL
+                    SERVICE_URL=$(kubectl get svc django-app -n staging -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                    
+                    # Install OWASP ZAP
+                    wget -qO- https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz | tar -xz
+                    
+                    # Run ZAP scan
+                    ./ZAP_2.14.0/zap.sh -cmd -quickurl http://$SERVICE_URL -quickprogress -quickout zap-report.html || true
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            archiveArtifacts artifacts: '*.html,*.json', fingerprint: true
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}

@@ -181,3 +181,108 @@ variable "github_username" {
   type        = string
   default     = ""
 }
+
+# Prometheus Configuration
+variable "prometheus_chart_version" {
+  description = "Версія Helm chart для Prometheus"
+  type        = string
+  default     = "55.0.0"
+}
+
+variable "prometheus_retention" {
+  description = "Час зберігання метрик Prometheus"
+  type        = string
+  default     = "15d"
+}
+
+variable "prometheus_storage_size" {
+  description = "Розмір сховища для Prometheus"
+  type        = string
+  default     = "20Gi"
+}
+
+variable "prometheus_cpu_request" {
+  description = "CPU request для Prometheus"
+  type        = string
+  default     = "200m"
+}
+
+variable "prometheus_memory_request" {
+  description = "Memory request для Prometheus"
+  type        = string
+  default     = "512Mi"
+}
+
+variable "prometheus_cpu_limit" {
+  description = "CPU limit для Prometheus"
+  type        = string
+  default     = "1000m"
+}
+
+variable "prometheus_memory_limit" {
+  description = "Memory limit для Prometheus"
+  type        = string
+  default     = "2Gi"
+}
+
+# Grafana Configuration
+variable "grafana_chart_version" {
+  description = "Версія Helm chart для Grafana"
+  type        = string
+  default     = "7.0.19"
+}
+
+variable "grafana_admin_user" {
+  description = "Адміністратор користувач Grafana"
+  type        = string
+  default     = "admin"
+}
+
+variable "grafana_admin_password" {
+  description = "Пароль адміністратора Grafana"
+  type        = string
+  default     = "admin123"
+  sensitive   = true
+}
+
+variable "grafana_domain" {
+  description = "Домен для Grafana"
+  type        = string
+  default     = "localhost"
+}
+
+variable "grafana_anonymous_access" {
+  description = "Дозволити анонімний доступ до Grafana"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_storage_size" {
+  description = "Розмір сховища для Grafana"
+  type        = string
+  default     = "10Gi"
+}
+
+variable "grafana_cpu_request" {
+  description = "CPU request для Grafana"
+  type        = string
+  default     = "100m"
+}
+
+variable "grafana_memory_request" {
+  description = "Memory request для Grafana"
+  type        = string
+  default     = "128Mi"
+}
+
+variable "grafana_cpu_limit" {
+  description = "CPU limit для Grafana"
+  type        = string
+  default     = "500m"
+}
+
+variable "grafana_memory_limit" {
+  description = "Memory limit для Grafana"
+  type        = string
+  default     = "512Mi"
+}

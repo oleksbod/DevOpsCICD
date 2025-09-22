@@ -1,16 +1,63 @@
-# Lesson DB Module: Універсальний RDS модуль з повним CI/CD
+# Final DevOps Project: Повна CI/CD інфраструктура з моніторингом
 
-## Опис проекту
+## 📋 Опис проекту
 
-Цей проект реалізує повний CI/CD-процес з універсальним RDS модулем, який підтримує:
+Цей проект реалізує повну DevOps інфраструктуру з автоматизацією CI/CD, моніторингом та безпекою. Включає всі необхідні компоненти для сучасного розгортання додатків у хмарі.
 
--   **Jenkins** - для автоматичної збірки Docker-образів
--   **Helm** - для управління Kubernetes додатками
--   **Terraform** - для інфраструктури як код
--   **Argo CD** - для GitOps автоматизації розгортання
--   **RDS** - універсальний модуль для баз даних (PostgreSQL/MySQL, RDS/Aurora)
+### 🏗️ Архітектура
 
-## Структура проекту
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   GitHub Repo   │    │   Jenkins CI    │    │   Argo CD       │
+│                 │───▶│                 │───▶│   GitOps        │
+│   Source Code   │    │   Build & Test  │    │   Deployment    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   ECR Registry  │    │   EKS Cluster   │    │   RDS Database  │
+│                 │◀───│                 │───▶│                 │
+│   Docker Images │    │   Kubernetes    │    │   PostgreSQL    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐
+│   Prometheus    │    │   Grafana       │
+│   Metrics       │───▶│   Dashboards    │
+│   Collection    │    │   Monitoring    │
+└─────────────────┘    └─────────────────┘
+```
+
+## 🚀 Компоненти системи
+
+### Інфраструктура
+
+-   **AWS VPC** - ізольована мережа з публічними та приватними підмережами
+-   **EKS** - Kubernetes кластер для оркестрації контейнерів
+-   **RDS** - PostgreSQL база даних (з підтримкою Aurora)
+-   **ECR** - приватний реєстр Docker образів
+-   **S3 + DynamoDB** - зберігання Terraform стану
+
+### CI/CD
+
+-   **Jenkins** - автоматична збірка, тестування та деплой
+-   **Argo CD** - GitOps автоматизація розгортання
+-   **Helm** - управління Kubernetes додатками
+
+### Моніторинг
+
+-   **Prometheus** - збір метрик та моніторинг
+-   **Grafana** - візуалізація метрик та дашборди
+-   **Alertmanager** - система сповіщень
+
+### Безпека
+
+-   **SAST** - статичний аналіз коду (Bandit)
+-   **DAST** - динамічний аналіз безпеки (OWASP ZAP)
+-   **Container Security** - сканування образів (Trivy)
+-   **IAM** - управління доступом та ролями
+
+## 📁 Структура проекту
 
 ```
 final-project/
@@ -18,57 +65,109 @@ final-project/
 ├── backend.tf                       # Налаштування S3 backend
 ├── outputs.tf                       # Виводи ресурсів
 ├── variables.tf                     # Змінні Terraform
+├── terraform.tfvars                 # Конфігурація проекту
 ├── terraform.tfvars.example         # Приклад конфігурації
-├── modules/
-│   ├── s3-backend/                  # S3 + DynamoDB модуль
-│   ├── vpc/                         # VPC модуль
-│   ├── ecr/                         # ECR модуль
-│   ├── eks/                         # EKS модуль
-│   ├── rds/                         # RDS модуль (головний фокус)
-│   ├── jenkins/                     # Jenkins модуль
-│   └── argo_cd/                     # Argo CD модуль
-└── charts/
-    └── django-app/                  # Helm chart для Django
+├── modules/                         # Terraform модулі
+│   ├── s3-backend/                  # S3 + DynamoDB
+│   ├── vpc/                         # VPC та мережа
+│   ├── ecr/                         # ECR реєстр
+│   ├── eks/                         # EKS кластер
+│   ├── rds/                         # RDS база даних
+│   ├── jenkins/                     # Jenkins CI
+│   ├── argo_cd/                     # Argo CD GitOps
+│   ├── prometheus/                  # Prometheus моніторинг
+│   └── grafana/                     # Grafana візуалізація
+├── charts/                          # Helm charts
+│   └── django-app/                  # Django додаток
+└── Django/                          # Django додаток
+    ├── app/                         # Код додатку
+    ├── Dockerfile                   # Docker образ
+    ├── docker-compose.yml           # Локальна розробка
+    ├── Jenkinsfile                  # CI/CD пайплайн
+    └── nginx/                       # Nginx конфігурація
 ```
 
-### Необхідні AWS політики:
+## 🛠️ Встановлення та налаштування
 
--   AmazonS3FullAccess
--   AmazonDynamoDBFullAccess
--   AmazonEC2FullAccess
--   AmazonEC2ContainerRegistryFullAccess
--   AmazonEKSFullAccess
--   AmazonRDSFullAccess
--   IAMFullAccess
+### Передумови
 
-## 🚀 Швидкий старт
+1. **AWS CLI** налаштований з правами доступу
+2. **Terraform** >= 1.5.0
+3. **kubectl** для роботи з Kubernetes
+4. **Helm** для управління додатками
+5. **Docker** для збірки образів
 
-### 1. Підготовка
+### Необхідні AWS політики
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": ["s3:*", "dynamodb:*", "ec2:*", "eks:*", "rds:*", "ecr:*", "iam:*"],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+### 1. Клонування репозиторію
 
 ```bash
-# Клонуйте репозиторій
-git clone <repository-url>
-cd final-project
-
-# Створіть terraform.tfvars файл
-cp terraform.tfvars.example terraform.tfvars
+git clone https://github.com/oleksbod/DevOpsCICD.git
+cd DevOpsCICD/final-project
 ```
 
-### 2. Налаштування
+### 2. Налаштування конфігурації
 
-Відредагуйте `terraform.tfvars` файл:
+```bash
+# Копіюємо приклад конфігурації
+cp terraform.tfvars.example terraform.tfvars
+
+# Редагуємо конфігурацію
+nano terraform.tfvars
+
+# Налаштування Django .env файлу
+cd Django
+cp env.example .env
+nano .env
+```
+
+**Обов'язкові змінні для налаштування:**
+
+**terraform.tfvars:**
 
 ```hcl
-# Основні налаштування
-use_aurora = false  # true для Aurora, false для звичайного RDS
-rds_engine = "postgres"  # postgres або mysql
-rds_instance_class = "db.t3.micro"
-rds_database_name = "mydb"
-rds_master_username = "admin"
-rds_master_password = ""  # Залиште порожнім для автогенерації
+# GitHub Configuration
+github_token    = "your-github-pat-token"
+github_username = "your-github-username"
+
+# RDS Configuration
+rds_master_password = "your-secure-password"
 ```
 
-### 3. Розгортання
+**Django/.env:**
+
+```bash
+# Django Configuration
+DEBUG=True
+SECRET_KEY=your-django-secret-key
+
+# Database Configuration
+DB_NAME=mydb
+DB_USER=dbadmin
+DB_PASSWORD=your-database-password
+DB_HOST=db
+DB_PORT=5432
+
+# PostgreSQL Configuration
+POSTGRES_DB=mydb
+POSTGRES_USER=dbadmin
+POSTGRES_PASSWORD=your-database-password
+```
+
+### 3. Розгортання інфраструктури
 
 ```bash
 # Ініціалізація Terraform
@@ -81,317 +180,29 @@ terraform plan
 terraform apply
 ```
 
-## RDS Модуль
-
-### Функціонал RDS модуля
-
-Модуль `modules/rds/` реалізує універсальний підхід до створення баз даних:
-
-#### 1. Підтримка двох типів баз даних:
-
--   **Звичайний RDS** (`use_aurora = false`) - створює `aws_db_instance`
--   **Aurora кластер** (`use_aurora = true`) - створює `aws_rds_cluster` + інстанси
-
-#### 2. Підтримка двигунів:
-
--   **PostgreSQL** - з автоматичним вибором версії
--   **MySQL** - з автоматичним вибором версії
-
-#### 3. Автоматичне створення ресурсів:
-
--   **DB Subnet Group** - для ізоляції в приватних підмережах
--   **Security Group** - з налаштованими правилами доступу
--   **Parameter Group** - з базовими параметрами (max_connections, log_statement, work_mem)
-
-#### 4. Aurora Serverless підтримка:
-
--   Автопауза для економії коштів
--   Масштабування за потребою
--   Налаштування min/max capacity
-
-## CI/CD Процес
-
-### 1. Jenkins Pipeline
-
-Jenkins автоматично:
-
--   Збирає Docker образ з Django додатком
--   Пушить образ в Amazon ECR
--   Оновлює тег в Helm chart
--   Пушить зміни в GitHub
-
-### 2. Argo CD Application
-
-Argo CD:
-
--   Відстежує зміни в GitHub репозиторії
--   Автоматично синхронізує Helm chart
--   Розгортає оновлення в EKS кластер
-
-### 3. RDS Integration
-
-RDS модуль інтегрується з CI/CD:
-
--   База даних створюється автоматично при розгортанні
--   Підтримує як звичайні RDS, так і Aurora кластери
--   Автоматично налаштовує безпеку та мережу
-
-## Доступ до сервісів
-
-### Доступ до Jenkins
-
-1. Отримайте LoadBalancer IP:
+### 4. Налаштування kubectl
 
 ```bash
-kubectl get svc -n jenkins jenkins
+# Отримуємо команду з outputs
+terraform output eks_kubeconfig_command
+
+# Виконуємо команду
+aws eks update-kubeconfig --region eu-central-1 --name final-project-eks
 ```
 
-2. Отримайте пароль адміністратора:
-
-```bash
-kubectl -n jenkins get secret jenkins -o jsonpath='{.data.jenkins-admin-password}'
-[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("received_password"))
-```
-
-3. Відкрийте Jenkins UI: `http://<LOADBALANCER_IP>`
-4. Логін: `admin`
-
-### Доступ до Argo CD
-
-1. Отримайте LoadBalancer IP:
-
-```bash
-kubectl get svc -n argocd
-```
-
-2. Отримайте пароль адміністратора:
-
-```bash
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}'
-[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("received_password"))
-```
-
-3. Відкрийте Argo CD UI: `https://<LOADBALANCER_IP>`
-4. Логін: `admin`
-
-### Доступ до RDS
-
-1. Отримайте endpoint бази даних:
-
-```bash
-terraform output rds_instance_endpoint
-# або для Aurora
-terraform output aurora_cluster_endpoint
-```
-
-2. Отримайте пароль:
-
-```bash
-terraform output -raw rds_connection_string
-```
-
-## 📋 Використання RDS модуля
-
-### Базове використання
-
-```hcl
-module "rds" {
-  source = "./modules/rds"
-
-  # Основна конфігурація
-  use_aurora = false
-  engine     = "postgres"
-  instance_class = "db.t3.micro"
-
-  # База даних
-  database_name   = "mydb"
-  master_username = "admin"
-  master_password = "secure-password"
-
-  # Мережа
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
-
-  # Безпека
-  allowed_cidr_blocks = ["10.0.0.0/16"]
-
-  tags = {
-    Environment = "production"
-  }
-}
-```
-
-### Aurora кластер
-
-```hcl
-module "rds" {
-  source = "./modules/rds"
-
-  # Aurora конфігурація
-  use_aurora = true
-  engine     = "postgres"
-  instance_class = "db.r5.large"
-
-  # Aurora специфічні налаштування
-  aurora_cluster_instances = 2
-  aurora_auto_pause = false
-
-  # Решта конфігурації...
-}
-```
-
-### Aurora Serverless
-
-```hcl
-module "rds" {
-  source = "./modules/rds"
-
-  # Aurora Serverless
-  use_aurora = true
-  engine     = "postgres"
-
-  # Serverless налаштування
-  aurora_auto_pause = true
-  aurora_seconds_until_auto_pause = 300
-  aurora_max_capacity = 16
-  aurora_min_capacity = 2
-
-  # Решта конфігурації...
-}
-```
-
-## 🔧 Змінні модуля RDS
-
-### Основні змінні
-
-| Змінна               | Тип      | За замовчуванням | Опис                                              |
-| -------------------- | -------- | ---------------- | ------------------------------------------------- |
-| `use_aurora`         | `bool`   | `false`          | Створити Aurora кластер замість звичайного RDS    |
-| `rds_engine`         | `string` | `"postgres"`     | Тип бази даних (postgres, mysql)                  |
-| `rds_engine_version` | `string` | `""`             | Версія двигуна (порожня для автоматичного вибору) |
-| `rds_instance_class` | `string` | `"db.t3.micro"`  | Клас інстансу                                     |
-| `rds_multi_az`       | `bool`   | `false`          | Увімкнути Multi-AZ розгортання                    |
-
-### Конфігурація бази даних
-
-| Змінна                | Тип      | За замовчуванням | Опис                                       |
-| --------------------- | -------- | ---------------- | ------------------------------------------ |
-| `rds_database_name`   | `string` | `"mydb"`         | Назва бази даних                           |
-| `rds_master_username` | `string` | `"admin"`        | Мастер користувач                          |
-| `rds_master_password` | `string` | `""`             | Мастер пароль (порожній для автогенерації) |
-
-### Конфігурація сховища
-
-| Змінна                      | Тип      | За замовчуванням | Опис                             |
-| --------------------------- | -------- | ---------------- | -------------------------------- |
-| `rds_allocated_storage`     | `number` | `20`             | Розмір сховища (GB)              |
-| `rds_max_allocated_storage` | `number` | `100`            | Максимальний розмір сховища (GB) |
-| `rds_storage_type`          | `string` | `"gp2"`          | Тип сховища                      |
-| `rds_storage_encrypted`     | `bool`   | `true`           | Шифрування сховища               |
-
-### Мережева конфігурація
-
-| Змінна                        | Тип            | За замовчуванням | Опис                      |
-| ----------------------------- | -------------- | ---------------- | ------------------------- |
-| `rds_allowed_cidr_blocks`     | `list(string)` | `[]`             | Дозволені CIDR блоки      |
-| `rds_allowed_security_groups` | `list(string)` | `[]`             | Дозволені security groups |
-
-### Aurora специфічні змінні
-
-| Змінна                            | Тип      | За замовчуванням | Опис                               |
-| --------------------------------- | -------- | ---------------- | ---------------------------------- |
-| `aurora_cluster_instances`        | `number` | `1`              | Кількість інстансів в кластері     |
-| `aurora_auto_pause`               | `bool`   | `false`          | Увімкнути автопаузу для Serverless |
-| `aurora_seconds_until_auto_pause` | `number` | `300`            | Секунди до автопаузи               |
-| `aurora_max_capacity`             | `number` | `16`             | Максимальна потужність Serverless  |
-| `aurora_min_capacity`             | `number` | `2`              | Мінімальна потужність Serverless   |
-
-## 📤 Outputs модуля RDS
-
-### Загальні outputs
-
-| Output                | Опис                       |
-| --------------------- | -------------------------- |
-| `rds_database_name`   | Назва бази даних           |
-| `rds_master_username` | Мастер користувач          |
-| `rds_port`            | Порт бази даних            |
-| `rds_engine`          | Двигун бази даних          |
-| `rds_engine_version`  | Версія двигуна             |
-| `rds_use_aurora`      | Чи використовується Aurora |
-
-### RDS Instance outputs (коли use_aurora = false)
-
-| Output                  | Опис                  |
-| ----------------------- | --------------------- |
-| `rds_instance_id`       | ID RDS інстансу       |
-| `rds_instance_endpoint` | Endpoint RDS інстансу |
-| `rds_instance_address`  | Адреса RDS інстансу   |
-
-### Aurora Cluster outputs (коли use_aurora = true)
-
-| Output                           | Опис                            |
-| -------------------------------- | ------------------------------- |
-| `aurora_cluster_id`              | ID Aurora кластера              |
-| `aurora_cluster_endpoint`        | Endpoint Aurora кластера        |
-| `aurora_cluster_reader_endpoint` | Reader endpoint Aurora кластера |
-
-### Безпека та мережа
-
-| Output                  | Опис                          |
-| ----------------------- | ----------------------------- |
-| `rds_security_group_id` | ID security group             |
-| `rds_connection_string` | Рядок підключення (sensitive) |
-
-## Налаштування параметрів
-
-Модуль автоматично створює parameter groups з базовими налаштуваннями:
-
-### PostgreSQL параметри
-
--   `max_connections` - Максимальна кількість з'єднань
--   `log_statement` - Рівень логування SQL запитів
--   `work_mem` - Робоча пам'ять для операцій (MB)
-
-### MySQL параметри
-
--   `max_connections` - Максимальна кількість з'єднань
-
-## Безпека
-
-Модуль автоматично створює:
-
--   Security Group з налаштованими правилами доступу
--   DB Subnet Group для ізоляції в приватних підмережах
--   Шифрування сховища (за замовчуванням увімкнено)
--   Parameter Groups з безпечними налаштуваннями
-
-## Вартість
-
-### RDS Instance (db.t3.micro)
-
--   ~$15-20/місяць за базову конфігурацію
-
-### Aurora Cluster (db.r5.large)
-
--   ~$200-300/місяць за кластер з 2 інстансами
-
-### Aurora Serverless
-
--   ~$10-50/місяць залежно від використання
-
-## Команди для перевірки
+## 🔍 Перевірка розгортання
 
 ### Перевірка EKS кластера
 
 ```bash
-# Оновлення kubeconfig
-aws eks update-kubeconfig --region eu-central-1 --name final-project-eks
-
-# Перевірка нод
+# Статус нод
 kubectl get nodes
 
-# Перевірка подів
+# Статус подів
 kubectl get pods -A
+
+# Статус сервісів
+kubectl get svc -A
 ```
 
 ### Перевірка Jenkins
@@ -400,9 +211,17 @@ kubectl get pods -A
 # Статус Jenkins
 kubectl get pods -n jenkins
 
-# Логи Jenkins
-kubectl logs -n jenkins -l app.kubernetes.io/name=jenkins
+# Отримання паролю адміністратора
+kubectl -n jenkins get secret jenkins -o jsonpath='{.data.jenkins-admin-password}' | base64 -d
+
+# Доступ до Jenkins UI
+kubectl port-forward svc/jenkins 8080:8080 -n jenkins
 ```
+
+**Jenkins UI:** http://localhost:8080
+
+-   **Логін:** admin
+-   **Пароль:** (отриманий вище)
 
 ### Перевірка Argo CD
 
@@ -410,24 +229,44 @@ kubectl logs -n jenkins -l app.kubernetes.io/name=jenkins
 # Статус Argo CD
 kubectl get pods -n argocd
 
-# Список додатків
-kubectl get applications -n argocd
+# Отримання паролю адміністратора
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+
+# Доступ до Argo CD UI
+kubectl port-forward svc/argo-cd-argocd-server 8081:443 -n argocd
 ```
 
-### Перевірка RDS
+**Argo CD UI:** https://localhost:8081
+
+-   **Логін:** admin
+-   **Пароль:** (отриманий вище)
+
+### Перевірка Prometheus
 
 ```bash
-# Список RDS інстансів
-aws rds describe-db-instances --query 'DBInstances[].{ID:DBInstanceIdentifier,Engine:Engine,Status:DBInstanceStatus,Endpoint:Endpoint.Address}' --output table
+# Статус Prometheus
+kubectl get pods -n monitoring
 
-# Список Aurora кластерів
-aws rds describe-db-clusters --query 'DBClusters[].{ID:DBClusterIdentifier,Engine:Engine,Status:Status,Endpoint:Endpoint}' --output table
-
-# Перевірка підключення до бази
-psql -h <endpoint> -U admin -d mydb
-# або для MySQL
-mysql -h <endpoint> -u admin -p mydb
+# Доступ до Prometheus UI
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:80 -n monitoring
 ```
+
+**Prometheus UI:** http://localhost:9090
+
+### Перевірка Grafana
+
+```bash
+# Статус Grafana
+kubectl get pods -n monitoring
+
+# Доступ до Grafana UI
+kubectl port-forward svc/grafana 3000:80 -n monitoring
+```
+
+**Grafana UI:** http://localhost:3000
+
+-   **Логін:** admin
+-   **Пароль:** admin123
 
 ### Перевірка Django додатку
 
@@ -442,52 +281,218 @@ kubectl get svc -l app=django-app
 kubectl logs -l app=django-app
 ```
 
-## 🧹 Очищення ресурсів
+## 📊 Моніторинг та метрики
 
-```bash
-# Видалення Helm релізів
-helm uninstall django -n default
-helm uninstall jenkins -n jenkins
-helm uninstall argo-cd -n argocd
+### Prometheus метрики
 
-# Видалення інфраструктури
-terraform destroy
+Додаток автоматично експортує метрики на `/metrics/` endpoint:
+
+-   **HTTP запити** - кількість та час відповіді
+-   **Database з'єднання** - статус підключення до БД
+-   **System ресурси** - CPU, пам'ять, диск
+-   **Custom метрики** - бізнес-логіка додатку
+
+### Grafana дашборди
+
+Автоматично імпортуються дашборди:
+
+-   **Kubernetes Cluster Monitoring** (ID: 7249)
+-   **Kubernetes Pod Monitoring** (ID: 6417)
+-   **Node Exporter Full** (ID: 1860)
+
+### Налаштування алертів
+
+Prometheus налаштований для відстеження:
+
+-   Високого CPU використання
+-   Недоступності сервісів
+-   Помилок бази даних
+-   Перевищення лімітів пам'яті
+
+## 🔒 Безпека
+
+### SAST (Static Application Security Testing)
+
+Jenkins пайплайн включає:
+
+-   **Bandit** - аналіз Python коду
+-   **Trivy** - сканування Docker образів
+-   **Gitleaks** - пошук секретів у коді
+
+### DAST (Dynamic Application Security Testing)
+
+-   **OWASP ZAP** - автоматичне тестування веб-додатку
+-   **Nikto** - базове сканування безпеки
+-   **Nuclei** - шаблони атак
+
+### Container Security
+
+-   **Non-root user** - додаток запускається не від root
+-   **Read-only filesystem** - захист від модифікації
+-   **Security contexts** - обмеження привілеїв
+-   **Image scanning** - перевірка вразливостей
+
+## 🚀 CI/CD Pipeline
+
+### Jenkins Pipeline етапи
+
+1. **Checkout** - отримання коду з Git
+2. **Build** - збірка Docker образу
+3. **Security Scan** - SAST аналіз
+4. **Push to ECR** - завантаження образу
+5. **Update Chart** - оновлення Helm chart
+6. **Deploy to Staging** - розгортання на staging
+7. **DAST Scan** - динамічне тестування
+8. **Deploy to Production** - розгортання в продакшн
+
+### Argo CD Application
+
+Автоматично синхронізує:
+
+-   Helm chart з GitHub репозиторію
+-   Оновлення конфігурації
+-   Rollback при помилках
+-   Health checks
+
+## 📈 Автомасштабування
+
+### Horizontal Pod Autoscaler (HPA)
+
+```yaml
+minReplicas: 1
+maxReplicas: 3
+targetCPUUtilizationPercentage: 70
+targetMemoryUtilizationPercentage: 80
 ```
 
-## Troubleshooting
+### Vertical Pod Autoscaler (VPA)
 
-### Jenkins не може підключитися до GitHub
+Автоматично налаштовує:
 
-1. Перевірте GitHub PAT в credentials
-2. Перевірте IAM роль для Jenkins
-3. Перевірте логи Jenkins
+-   CPU requests/limits
+-   Memory requests/limits
+-   На основі історичних даних
 
-### Argo CD не синхронізує зміни
+## 🗄️ База даних
 
-1. Перевірте статус Application в UI
-2. Перевірте доступ до GitHub репозиторію
-3. Перевірте логи Argo CD
+### RDS PostgreSQL
 
-### RDS не створюється
+-   **Engine:** PostgreSQL 15.14
+-   **Instance:** db.t3.micro
+-   **Storage:** 20GB GP2
+-   **Backup:** 7 днів
+-   **Encryption:** Enabled
 
-1. Перевірте права доступу до RDS
-2. Перевірте чи існують підмережі в VPC
-3. Перевірте чи не перевищено ліміти AWS
+### Aurora (опціонально)
 
-### Django додаток не підключається до RDS
+```hcl
+use_aurora = true
+aurora_cluster_instances = 2
+aurora_auto_pause = true
+```
 
-1. Перевірте чи існує RDS інстанс
-2. Перевірте security group правила
-3. Перевірте правильність connection string
+## 💰 Вартість
 
-### Aurora кластер не створюється
+### Щомісячні витрати (приблизно)
 
-1. Перевірте чи підтримується обраний instance class
-2. Перевірте чи не перевищено ліміти Aurora
-3. Перевірте правильність параметрів
+-   **EKS Cluster:** ~$70
+-   **EC2 Instances (2x t3.large):** ~$60
+-   **RDS (db.t3.micro):** ~$15
+-   **Load Balancers:** ~$20
+-   **Storage (EBS):** ~$10
+-   **Data Transfer:** ~$5
+
+**Загальна вартість:** ~$180/місяць
+
+## 🧪 Тестування
+
+### Локальне тестування
+
+```bash
+cd Django
+docker-compose up -d
+```
+
+### Тестування в Kubernetes
+
+```bash
+# Деплой тестового додатку
+helm install django-test ./charts/django-app --namespace test
+
+# Перевірка статусу
+kubectl get pods -n test
+
+# Тестування API
+curl http://localhost:8000/health/
+curl http://localhost:8000/metrics/
+```
+
+## 🔧 Troubleshooting
+
+### Часті проблеми
+
+#### Jenkins не може підключитися до GitHub
+
+```bash
+# Перевірка credentials
+kubectl get secret github-token -n jenkins
+
+# Перевірка IAM ролі
+kubectl describe sa jenkins-sa -n jenkins
+```
+
+#### Argo CD не синхронізує
+
+```bash
+# Перевірка статусу Application
+kubectl get applications -n argocd
+
+# Логи Argo CD
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server
+```
+
+#### Prometheus не збирає метрики
+
+```bash
+# Перевірка ServiceMonitor
+kubectl get servicemonitor -A
+
+# Перевірка Prometheus targets
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:80 -n monitoring
+# Відкрити http://localhost:9090/targets
+```
+
+#### Django додаток не підключається до RDS
+
+```bash
+# Перевірка RDS endpoint
+terraform output rds_instance_endpoint
+
+# Перевірка security groups
+kubectl describe pod django-app-xxx
+```
 
 ## 📚 Додаткова документація
 
--   [AWS RDS Documentation](https://docs.aws.amazon.com/rds/)
--   [AWS Aurora Documentation](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/)
+-   [AWS EKS Documentation](https://docs.aws.amazon.com/eks/)
+-   [Prometheus Documentation](https://prometheus.io/docs/)
+-   [Grafana Documentation](https://grafana.com/docs/)
+-   [Jenkins Documentation](https://www.jenkins.io/doc/)
+-   [Argo CD Documentation](https://argo-cd.readthedocs.io/)
 -   [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+
+## 👥 Автори
+
+-   **Oleksandr** - _Initial work_ - [oleksbod](https://github.com/oleksbod)
+
+## 🙏 Подяки
+
+-   AWS за безкоштовний tier
+-   Prometheus community за відмінний інструмент моніторингу
+-   Grafana team за красиві дашборди
+-   Jenkins community за CI/CD платформу
+-   Argo CD team за GitOps рішення
+
+---
+
+**УВАГА!** Після тестування обов'язково видаліть ресурси командою `terraform destroy` для уникнення непередбачуваних витрат.

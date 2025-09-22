@@ -1,50 +1,26 @@
 # Terraform
-.terraform/
-*.tfplan
 *.tfstate
 *.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+.terraform/
 .terraform.lock.hcl
 crash.log
-override.tf
-override.tf.tf
-terraform.rc
-terraform.tfvars
-terraform.tfvars.json
-tfplan.binary
-
-# Local .terraform directories
-**/.terraform/*
-
-# Provider-specific files
-.terraform/providers/*
+crash.*.log
 
 # AWS
 .aws/
 
 # Kubernetes
-.kube/
+kubeconfig
+*.kubeconfig
 
-# IDEs
-.idea/
+# IDE
 .vscode/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.project
-.settings
-.vs/
-*.egg
-*.egg-info/
-dist/
-build/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
@@ -52,7 +28,53 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
 # Temporary files
 *.tmp
 *.temp
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.bak
+*.backup
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.dockerignore
+
+# Helm
+charts/*/charts/
+charts/*/requirements.lock
+charts/*/Chart.lock
+
+# Monitoring
+prometheus-data/
+grafana-data/

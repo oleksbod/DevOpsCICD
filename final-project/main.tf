@@ -179,3 +179,48 @@ module "argo_cd" {
   
   depends_on = [module.eks]
 }
+
+# 7) Prometheus модуль
+module "prometheus" {
+  source = "./modules/prometheus"
+  
+  namespace     = "monitoring"
+  chart_version = var.prometheus_chart_version
+  retention     = var.prometheus_retention
+  storage_size  = var.prometheus_storage_size
+  cpu_request   = var.prometheus_cpu_request
+  memory_request = var.prometheus_memory_request
+  cpu_limit     = var.prometheus_cpu_limit
+  memory_limit  = var.prometheus_memory_limit
+  
+  tags = {
+    Project = "final-project"
+  }
+  
+  depends_on = [module.eks]
+}
+
+# 8) Grafana модуль
+module "grafana" {
+  source = "./modules/grafana"
+  
+  namespace           = "monitoring"
+  chart_version       = var.grafana_chart_version
+  admin_user          = var.grafana_admin_user
+  admin_password      = var.grafana_admin_password
+  domain              = var.grafana_domain
+  anonymous_access    = var.grafana_anonymous_access
+  storage_size        = var.grafana_storage_size
+  cpu_request         = var.grafana_cpu_request
+  memory_request      = var.grafana_memory_request
+  cpu_limit           = var.grafana_cpu_limit
+  memory_limit        = var.grafana_memory_limit
+  prometheus_url      = "http://${module.prometheus.prometheus_service_name}.${module.prometheus.prometheus_namespace}.svc:${module.prometheus.prometheus_service_port}"
+  prometheus_depends_on = [module.prometheus]
+  
+  tags = {
+    Project = "final-project"
+  }
+  
+  depends_on = [module.prometheus]
+}

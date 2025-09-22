@@ -150,3 +150,41 @@ output "argo_cd_admin_password" {
 output "argo_cd_url" {
   value = module.argo_cd.argo_cd_url
 }
+
+# Prometheus outputs
+output "prometheus_namespace" {
+  description = "Namespace Prometheus"
+  value       = module.prometheus.prometheus_namespace
+}
+
+output "prometheus_ui_command" {
+  description = "Команда для доступу до Prometheus UI"
+  value       = module.prometheus.prometheus_ui_command
+}
+
+output "alertmanager_ui_command" {
+  description = "Команда для доступу до Alertmanager UI"
+  value       = module.prometheus.alertmanager_ui_command
+}
+
+# Grafana outputs
+output "grafana_ui_command" {
+  description = "Команда для доступу до Grafana UI"
+  value       = module.grafana.grafana_ui_command
+}
+
+output "grafana_admin_user" {
+  description = "Користувач адміністратора Grafana"
+  value       = module.grafana.grafana_admin_user
+}
+
+output "grafana_admin_password" {
+  description = "Пароль адміністратора Grafana"
+  value       = module.grafana.grafana_admin_password
+  sensitive   = true
+}
+
+output "grafana_url" {
+  description = "URL для доступу до Grafana"
+  value       = module.grafana.grafana_url
+}

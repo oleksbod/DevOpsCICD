@@ -1,5 +1,5 @@
 image:
-    repository: "535138320407.dkr.ecr.eu-central-1.amazonaws.com/lesson-8-9-django"
+    repository: "535138320407.dkr.ecr.eu-central-1.amazonaws.com/final-project-django"
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -10,31 +10,66 @@ service:
 
 resources:
     requests:
-        cpu: "50m"
-        memory: "128Mi"
-    limits:
-        cpu: "200m"
+        cpu: "100m"
         memory: "256Mi"
+    limits:
+        cpu: "500m"
+        memory: "512Mi"
 
 autoscaling:
     enabled: true
     minReplicas: 1
-    maxReplicas: 2
+    maxReplicas: 3
     targetCPUUtilizationPercentage: 70
 
-# Перенеси сюди ENV з теми 4
+# Environment variables
 env:
-    DJANGO_SETTINGS_MODULE: "config.settings"
-    SECRET_KEY: "change-me"
     DEBUG: "false"
     ALLOWED_HOSTS: "*"
+    DJANGO_SETTINGS_MODULE: "myproject.settings"
 
-    POSTGRES_HOST: "db"
-    POSTGRES_PORT: "5432"
-    POSTGRES_USER: "django_user"
-    POSTGRES_DB: "django_db"
-    POSTGRES_PASSWORD: "pass9764gd"
+    # Database configuration
+    DB_NAME: "mydb"
+    DB_USER: "dbadmin"
+    DB_PASSWORD: "" # Will be set from RDS
+    DB_HOST: "" # Will be set from RDS
+    DB_PORT: "5432"
 
+# Database configuration (will be overridden by RDS)
+database:
+    enabled: false # We use external RDS
+
+# Monitoring
+monitoring:
+    enabled: true
+    prometheus:
+        enabled: true
+        path: "/metrics/"
+    grafana:
+        enabled: true
+
+# Health checks
+healthCheck:
+    enabled: true
+    path: "/health/"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Security
+securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+# Pod security
+podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+# Ingress
 ingress:
     enabled: false
     className: nginx
