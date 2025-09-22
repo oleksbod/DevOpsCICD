@@ -1,0 +1,58 @@
+# Terraform
+.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.tf
+terraform.rc
+terraform.tfvars
+terraform.tfvars.json
+tfplan.binary
+
+# Local .terraform directories
+**/.terraform/*
+
+# Provider-specific files
+.terraform/providers/*
+
+# AWS
+.aws/
+
+# Kubernetes
+.kube/
+
+# IDEs
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.project
+.settings
+.vs/
+*.egg
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
