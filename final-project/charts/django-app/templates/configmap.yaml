@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "django-app.fullname" . }}-config"
+  labels:
+    app: "{{ include "django-app.name" . }}"
+data:
+{{- range $k, $v := .Values.env }}
+  {{ $k }}: "{{ $v }}"
+{{- end }}
+  # Additional Django settings
+  PYTHONPATH: "/app"
+  PYTHONUNBUFFERED: "1"

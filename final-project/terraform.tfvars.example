@@ -1,0 +1,55 @@
+# RDS Configuration
+use_aurora = false  # Set to true for Aurora cluster, false for regular RDS
+rds_engine = "postgres"  # postgres or mysql
+rds_engine_version = ""  # Leave empty for default version
+rds_instance_class = "db.t3.micro"
+rds_multi_az = false
+rds_allocated_storage = 20
+rds_max_allocated_storage = 100
+rds_storage_type = "gp2"
+rds_storage_encrypted = true
+rds_database_name = "mydb"
+rds_master_username = "dbadmin"
+rds_master_password = ""  # Leave empty to generate random password
+rds_backup_retention_period = 7
+rds_backup_window = "03:00-04:00"
+rds_maintenance_window = "sun:04:00-sun:05:00"
+rds_allowed_cidr_blocks = []  # Add CIDR blocks for database access
+rds_allowed_security_groups = []  # Add security group IDs for database access
+rds_max_connections = 100
+rds_log_statement = "none"
+rds_work_mem = 4
+rds_deletion_protection = false
+rds_skip_final_snapshot = false
+
+# Aurora Configuration (only used when use_aurora = true)
+aurora_cluster_instances = 1
+aurora_auto_pause = false
+aurora_seconds_until_auto_pause = 300
+aurora_max_capacity = 16
+aurora_min_capacity = 2
+
+# GitHub Configuration
+github_token    = "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"
+github_username = "oleksbod"
+
+# Prometheus Configuration
+prometheus_chart_version = "55.0.0"
+prometheus_retention = "15d"
+prometheus_storage_size = "20Gi"
+prometheus_cpu_request = "200m"
+prometheus_memory_request = "512Mi"
+prometheus_cpu_limit = "1000m"
+prometheus_memory_limit = "2Gi"
+
+# Grafana Configuration
+grafana_chart_version = "7.0.19"
+grafana_admin_user = "admin"
+grafana_admin_password = "admin123"
+grafana_domain = "localhost"
+grafana_anonymous_access = false
+grafana_storage_size = "10Gi"
+grafana_cpu_request = "100m"
+grafana_memory_request = "128Mi"
+grafana_cpu_limit = "500m"
+grafana_memory_limit = "512Mi"
