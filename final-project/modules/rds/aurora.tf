@@ -48,6 +48,7 @@ resource "aws_rds_cluster" "main" {
 
   # Storage encryption
   storage_encrypted = var.storage_encrypted
+  kms_key_id       = aws_kms_key.rds.arn
 
   tags = merge(local.common_tags, {
     Name = "${var.database_name}-cluster"

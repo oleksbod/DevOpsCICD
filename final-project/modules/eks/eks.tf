@@ -16,6 +16,8 @@ module "eks" {
   # Увімкнути IRSA
   enable_irsa = true
 
+  # KMS ключі створюються автоматично EKS модулем
+
   eks_managed_node_groups = {
     default = {
       instance_types = var.ng_instance_types
@@ -29,4 +31,8 @@ module "eks" {
   tags = { Project = "final-project" }
 }
 
+# KMS ключі створюються автоматично EKS модулем
+
 # OIDC Provider створюється автоматично EKS модулем
+
+# EBS CSI Driver перенесено в main.tf для уникнення циклічних залежностей

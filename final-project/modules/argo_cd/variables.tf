@@ -24,5 +24,5 @@ variable "ecr_repo_url" {
 variable "github_repo_url" {
   description = "URL GitHub репозиторію з Helm charts"
   type        = string
-  default     = "https://github.com/AndriyDmitriv/infra.git"
+  default     = "https://github.com/oleksbod/DevOpsCICD.git"
 }

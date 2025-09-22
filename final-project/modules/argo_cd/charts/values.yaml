@@ -3,7 +3,7 @@ applications:
       namespace: default
       project: default
       source:
-          repoURL: "https://github.com/AndriyDmitriv/infra.git"
+          repoURL: "https://github.com/oleksbod/DevOpsCICD.git"
           path: "lesson-7/charts/django-app"
           targetRevision: main
           helm:
@@ -21,7 +21,7 @@ applications:
 
 repositories:
     - name: infra-repo
-      url: "https://github.com/AndriyDmitriv/infra.git"
+      url: "https://github.com/oleksbod/DevOpsCICD.git"
       type: git
 
 repoConfig:

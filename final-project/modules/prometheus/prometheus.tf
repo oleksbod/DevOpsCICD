@@ -31,7 +31,7 @@ resource "helm_release" "prometheus" {
           storageSpec = {
             volumeClaimTemplate = {
               spec = {
-                storageClassName = "gp2"
+                storageClassName = "ebs-sc"
                 accessModes = ["ReadWriteOnce"]
                 resources = {
                   requests = {
@@ -67,7 +67,7 @@ resource "helm_release" "prometheus" {
           storage = {
             volumeClaimTemplate = {
               spec = {
-                storageClassName = "gp2"
+                storageClassName = "ebs-sc"
                 accessModes = ["ReadWriteOnce"]
                 resources = {
                   requests = {

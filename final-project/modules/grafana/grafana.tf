@@ -18,7 +18,7 @@ resource "helm_release" "grafana" {
       
       persistence = {
         enabled = true
-        storageClassName = "gp2"
+        storageClassName = "ebs-sc"
         size = var.storage_size
       }
       
