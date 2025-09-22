@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.50"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.1"
+    }
   }
 }
 
@@ -12,18 +16,6 @@ provider "aws" {
   region = "eu-central-1"
 }
 
-# Змінні для CI/CD
-variable "github_token" {
-  description = "GitHub Personal Access Token для Jenkins"
-  type        = string
-  default     = ""
-}
-
-variable "github_username" {
-  description = "GitHub username для Jenkins"
-  type        = string
-  default     = ""
-}
 
 # Підключаємо модуль S3 + DynamoDB
 module "s3_backend" {
@@ -31,7 +23,7 @@ module "s3_backend" {
   bucket_name = "terraform-state-bucket-oleksandr"
   table_name  = "terraform-locks"
   tags = {
-    Project = "lesson-8-9"
+    Project = "final-project"
   }
 }
 
@@ -44,14 +36,14 @@ module "vpc" {
   availability_zones = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
   vpc_name           = "lesson-8-9-vpc"
   tags = {
-    Project = "lesson-8-9"
+    Project = "final-project"
   }
 }
 
 # Підключаємо модуль ECR
 module "ecr" {
   source       = "./modules/ecr"
-  ecr_name     = "lesson-8-9-django"
+  ecr_name     = "final-project-django"
   scan_on_push = true
 }
 
@@ -59,7 +51,7 @@ module "ecr" {
 module "eks" {
   source = "./modules/eks"
 
-  cluster_name        = "lesson-8-9-eks"
+  cluster_name        = "final-project-eks"
   cluster_version     = "1.29"
   vpc_id              = module.vpc.vpc_id 
   public_subnet_ids   = module.vpc.public_subnets
@@ -95,6 +87,62 @@ provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.eks.token
+}
+
+# RDS модуль
+module "rds" {
+  source = "./modules/rds"
+  
+  # Basic configuration
+  use_aurora = var.use_aurora
+  engine     = var.rds_engine
+  engine_version = var.rds_engine_version
+  instance_class = var.rds_instance_class
+  multi_az   = var.rds_multi_az
+  
+  # Database configuration
+  database_name   = var.rds_database_name
+  master_username = var.rds_master_username
+  master_password = var.rds_master_password
+  
+  # Storage configuration
+  allocated_storage     = var.rds_allocated_storage
+  max_allocated_storage = var.rds_max_allocated_storage
+  storage_type         = var.rds_storage_type
+  storage_encrypted    = var.rds_storage_encrypted
+  
+  # Backup configuration
+  backup_retention_period = var.rds_backup_retention_period
+  backup_window          = var.rds_backup_window
+  maintenance_window     = var.rds_maintenance_window
+  
+  # Network configuration
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+  
+  # Security configuration
+  allowed_cidr_blocks = var.rds_allowed_cidr_blocks
+  allowed_security_groups = var.rds_allowed_security_groups
+  
+  # Parameter configuration
+  max_connections = var.rds_max_connections
+  log_statement  = var.rds_log_statement
+  work_mem       = var.rds_work_mem
+  
+  # Aurora configuration
+  aurora_cluster_instances = var.aurora_cluster_instances
+  aurora_auto_pause        = var.aurora_auto_pause
+  aurora_seconds_until_auto_pause = var.aurora_seconds_until_auto_pause
+  aurora_max_capacity      = var.aurora_max_capacity
+  aurora_min_capacity      = var.aurora_min_capacity
+  
+  # Protection
+  deletion_protection = var.rds_deletion_protection
+  skip_final_snapshot = var.rds_skip_final_snapshot
+  
+  tags = {
+    Project = "final-project"
+  }
 }
 
 # 5) Jenkins модуль

@@ -1,4 +1,4 @@
-# Variables for lesson-db-module
+# Variables for final-project
 
 # RDS Configuration
 variable "use_aurora" {

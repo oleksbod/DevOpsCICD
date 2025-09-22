@@ -1,4 +1,4 @@
-# Outputs for lesson-db-module
+# Outputs for final-project
 
 # S3 Backend outputs
 output "s3_bucket_name" {

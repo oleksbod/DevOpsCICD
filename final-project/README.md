@@ -13,7 +13,7 @@
 ## Структура проекту
 
 ```
-lesson-db-module/
+final-project/
 ├── main.tf                          # Головний файл Terraform
 ├── backend.tf                       # Налаштування S3 backend
 ├── outputs.tf                       # Виводи ресурсів
@@ -48,7 +48,7 @@ lesson-db-module/
 ```bash
 # Клонуйте репозиторій
 git clone <repository-url>
-cd lesson-db-module
+cd final-project
 
 # Створіть terraform.tfvars файл
 cp terraform.tfvars.example terraform.tfvars
@@ -385,7 +385,7 @@ module "rds" {
 
 ```bash
 # Оновлення kubeconfig
-aws eks update-kubeconfig --region eu-central-1 --name lesson-db-module-eks
+aws eks update-kubeconfig --region eu-central-1 --name final-project-eks
 
 # Перевірка нод
 kubectl get nodes

@@ -1,4 +1,4 @@
-# Example terraform.tfvars file for lesson-db-module
+# Example terraform.tfvars file for final-project
 # Copy this file to terraform.tfvars and fill in your values
 
 # RDS Configuration
