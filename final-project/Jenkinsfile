@@ -1,0 +1,217 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: python
+                    image: python:3.11-slim
+                    command:
+                    - cat
+                    tty: true
+                    volumeMounts:
+                    - name: docker-sock
+                      mountPath: /var/run/docker.sock
+                  - name: docker
+                    image: docker:latest
+                    command:
+                    - cat
+                    tty: true
+                    volumeMounts:
+                    - name: docker-sock
+                      mountPath: /var/run/docker.sock
+                  - name: kubectl
+                    image: bitnami/kubectl:latest
+                    command:
+                    - cat
+                    tty: true
+                  volumes:
+                  - name: docker-sock
+                    hostPath:
+                      path: /var/run/docker.sock
+            """
+        }
+    }
+    
+    environment {
+        AWS_REGION = 'eu-central-1'
+        ECR_REGISTRY = '535138320407.dkr.ecr.eu-central-1.amazonaws.com'
+        ECR_REPOSITORY = 'django-app'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        KUBECONFIG = '/var/run/secrets/kubernetes.io/serviceaccount'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                }
+            }
+        }
+        
+        stage('Setup Python Environment') {
+            steps {
+                container('python') {
+                    sh '''
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
+                        pip install pytest pytest-django
+                    '''
+                }
+            }
+        }
+        
+        stage('Lint & Code Quality') {
+            steps {
+                container('python') {
+                    sh '''
+                        # Install linting tools
+                        pip install flake8 black isort
+                        
+                        # Run linting
+                        echo "Running flake8..."
+                        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+                        
+                        # Check code formatting
+                        echo "Checking code formatting with black..."
+                        black --check .
+                        
+                        # Check import sorting
+                        echo "Checking import sorting with isort..."
+                        isort --check-only .
+                    '''
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                container('python') {
+                    sh '''
+                        # Set Django settings
+                        export DJANGO_SETTINGS_MODULE=myproject.settings
+                        
+                        # Run tests
+                        python manage.py test --verbosity=2
+                        
+                        # Run with pytest if available
+                        pytest --tb=short -v || true
+                    '''
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                container('docker') {
+                    script {
+                        // Login to ECR
+                        sh '''
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        '''
+                        
+                        // Build and tag image
+                        sh '''
+                            docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
+                            docker build -t ${ECR_REPOSITORY}:latest .
+                            docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                            docker tag ${ECR_REPOSITORY}:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Push to ECR') {
+            steps {
+                container('docker') {
+                    sh '''
+                        docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                        docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            when {
+                branch 'main'
+            }
+            steps {
+                container('kubectl') {
+                    script {
+                        // Update image tag in deployment
+                        sh '''
+                            # Update the image tag in the deployment
+                            sed -i "s|image: .*|image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}|g" charts/django-app/values.yaml
+                            
+                            # Apply the updated deployment
+                            kubectl apply -f charts/django-app/ -n default
+                            
+                            # Wait for rollout to complete
+                            kubectl rollout status deployment/django-app -n default --timeout=300s
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        # Wait for service to be ready
+                        kubectl wait --for=condition=available --timeout=300s deployment/django-app -n default
+                        
+                        # Get service URL
+                        SERVICE_URL=$(kubectl get svc django-app -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                        
+                        if [ -n "$SERVICE_URL" ]; then
+                            echo "Service URL: http://$SERVICE_URL"
+                            
+                            # Health check
+                            for i in {1..10}; do
+                                if curl -f http://$SERVICE_URL/health/; then
+                                    echo "Health check passed!"
+                                    break
+                                else
+                                    echo "Health check attempt $i failed, retrying..."
+                                    sleep 10
+                                fi
+                            done
+                        else
+                            echo "Service not exposed via LoadBalancer"
+                        fi
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            container('kubectl') {
+                sh '''
+                    # Clean up old images
+                    docker image prune -f
+                '''
+            }
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}

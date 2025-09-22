@@ -32,6 +32,28 @@ controller:
         - docker-plugin:latest
         - docker-workflow:latest
         - job-dsl:latest
+        - pipeline-stage-view:latest
+        - build-timeout:latest
+        - timestamper:latest
+        - ws-cleanup:latest
+        - ant:latest
+        - gradle:latest
+        - workflow-cps-global-lib:latest
+        - pipeline-github-lib:latest
+        - pipeline-stage-tags-metadata:latest
+        - pipeline-graph-analysis:latest
+        - pipeline-input-step:latest
+        - pipeline-rest-api:latest
+        - pipeline-stage-step:latest
+        - pipeline-utility-steps:latest
+        - plain-credentials:latest
+        - ssh-credentials:latest
+        - matrix-auth:latest
+        - slack:latest
+        - email-ext:latest
+        - mailer:latest
+        - aws-credentials:latest
+        - amazon-ecr:latest
 
     serviceAccount:
         name: jenkins-sa
@@ -67,7 +89,8 @@ controller:
                         steps {
                           dsl {
                             text('''
-                              pipelineJob("goit-django-docker") {
+                              pipelineJob("django-cicd-pipeline") {
+                                description('Full CI/CD Pipeline for Django Application')
                                 definition {
                                   cpsScm {
                                     scm {
@@ -79,6 +102,53 @@ controller:
                                         branches("*/main")
                                       }
                                     }
+                                    scriptPath("Jenkinsfile")
+                                  }
+                                }
+                                triggers {
+                                  githubPush()
+                                }
+                                properties {
+                                  pipelineTriggers {
+                                    triggers {
+                                      githubPush()
+                                    }
+                                  }
+                                }
+                              }
+                              
+                              pipelineJob("django-build-only") {
+                                description('Build and Test Django Application')
+                                definition {
+                                  cpsScm {
+                                    scm {
+                                      git {
+                                        remote {
+                                          url("https://github.com/oleksbod/DevOpsCICD.git")
+                                          credentials("github-token")
+                                        }
+                                        branches("*/main")
+                                      }
+                                    }
+                                    scriptPath("Jenkinsfile.build")
+                                  }
+                                }
+                              }
+                              
+                              pipelineJob("django-deploy") {
+                                description('Deploy Django Application to Kubernetes')
+                                definition {
+                                  cpsScm {
+                                    scm {
+                                      git {
+                                        remote {
+                                          url("https://github.com/oleksbod/DevOpsCICD.git")
+                                          credentials("github-token")
+                                        }
+                                        branches("*/main")
+                                      }
+                                    }
+                                    scriptPath("Jenkinsfile.deploy")
                                   }
                                 }
                               }

@@ -224,3 +224,5 @@ module "grafana" {
   
   depends_on = [module.prometheus]
 }
+
+# EBS CSI Driver встановлюється вручну після розгортання інших сервісів

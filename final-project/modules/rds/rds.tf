@@ -20,6 +20,7 @@ resource "aws_db_instance" "main" {
   max_allocated_storage = var.max_allocated_storage
   storage_type         = var.storage_type
   storage_encrypted    = var.storage_encrypted
+  kms_key_id          = aws_kms_key.rds.arn
 
   # Network configuration
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -57,4 +58,21 @@ resource "aws_db_instance" "main" {
   })
 
   depends_on = [aws_db_parameter_group.main]
+}
+
+# KMS ключ для RDS
+resource "aws_kms_key" "rds" {
+  description             = "RDS encryption key for ${var.database_name}"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = merge(local.common_tags, {
+    Name = "${var.database_name}-encryption-key"
+    Type = "RDS-KMS"
+  })
+}
+
+resource "aws_kms_alias" "rds" {
+  name          = "alias/rds/${var.database_name}"
+  target_key_id = aws_kms_key.rds.key_id
 }
