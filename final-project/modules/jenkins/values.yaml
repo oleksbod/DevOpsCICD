@@ -47,8 +47,8 @@ controller:
                           - usernamePassword:
                               scope: GLOBAL
                               id: github-token
-                              username: ${GITHUB_USERNAME}
-                              password: ${GITHUB_TOKEN}
+                              username: "oleksbod"
+                              password: "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"
                               description: GitHub PAT
             seed-job: |
                 jobs:

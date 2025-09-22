@@ -26,7 +26,7 @@ module "eks" {
     }
   }
 
-  tags = { Project = "lesson-8-9" }
+  tags = { Project = "final-project" }
 }
 
 # OIDC Provider створюється автоматично EKS модулем

@@ -33,17 +33,19 @@ resource "helm_release" "grafana" {
         }
       }
       
-      "grafana.ini" = {
-        server = {
-          domain = var.domain
-          root_url = "http://localhost:3000/"
-        }
-        security = {
-          admin_user = var.admin_user
-          admin_password = var.admin_password
-        }
-        "auth.anonymous" = {
-          enabled = var.anonymous_access
+      grafana = {
+        "grafana.ini" = {
+          server = {
+            domain = var.domain
+            root_url = "http://localhost:3000/"
+          }
+          security = {
+            admin_user = var.admin_user
+            admin_password = var.admin_password
+          }
+          "auth.anonymous" = {
+            enabled = var.anonymous_access
+          }
         }
       }
       
